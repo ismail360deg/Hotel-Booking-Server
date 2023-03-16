@@ -37,42 +37,174 @@ async function run(){
             res.send(result);
         });
         
-        // app.get('/category', async (req, res) => {
-        //     if (req.query.country) {
-        //         const query = { country: req.query.country };
-        //         const result = await categoryCollection.find(query).toArray();
-        //         res.send(result);
-        //     }
-        //     else {
-        //         const query = {};
-        //         const result = await categoryCollection.find(query).toArray();
-        //         res.send(result);
-        //     }
-        // });
+        app.get('/category', async (req, res) => {
+            if (req.query.country) {
+                const query = { country: req.query.country };
+                const result = await categoryCollection.find(query).toArray();
+                res.send(result);
+            }
+            else {
+                const query = {};
+                const result = await categoryCollection.find(query).toArray();
+                res.send(result);
+            }
+        });
 
-         app.get("/category", async (req, res) => {
+// ===============================
+
+          app.get('/category/filter/v2', async (req, res) => {
+            const param = req.query
+            if(!param.brfFilter && !param.frIntFilter && !param.freeAirFilter && !param.airConFilter && !param.fitness && !param.pool ){
+              const data = await categoryCollection.find({}).toArray();
+              return res.send(data)
+            }else{
+              let filterQueries = []
+              if(param.brfFilter){
+                filterQueries = [...filterQueries, {
+                  freeBreakFast: "Free breakfast"
+                }]
+              }
+
+              if(param.frIntFilter){
+                filterQueries = [...filterQueries, {
+                  freeInternet: "Free internet"
+                }]
+              }
+              if(param.freeAirFilter){
+                filterQueries = [...filterQueries, {
+                  freeAirportShuttle: "Free airport shuttle"
+                }]
+              }
+
+              if(param.airConFilter){
+                filterQueries = [...filterQueries, {
+                  airConditioned: "Air conditioned"
+                }]
+              }
+
+              if(param.fitness){
+                filterQueries = [...filterQueries, {
+                  fitness: "Fitness"
+                }]
+              }
+
+              if(param.pool){
+                filterQueries = [...filterQueries, {
+                  pool: "Pool"
+                }]
+              }
+
+              const filterData = await categoryCollection.find({$or: filterQueries}).toArray();
+              return res.send(filterData)
+
+            }
+          });
+
+
+
+// ==========================================
+         app.get("/category/filter", async (req, res) => {
           let query = {};
-          if (req.query.brfFilter === "true" && req.query.frIntFilter === "false") {
+          console.log(req.query);
+          if (req.query.brfFilter  && !req.query.frIntFilter && !req.query.freeAirFilter ) {
             query = {
               freeBreakFast: "Free breakfast",
             };
-          }
-          if (req.query.brfFilter === "false" && req.query.frIntFilter === "true") {
+          };
+
+          if (!req.query.brfFilter && req.query.frIntFilter && !req.query.freeAirFilter ) {
             query = {
               freeInternet: "Free internet",
             };
+          };
+
+          if (!req.query.brfFilter && !req.query.frIntFilter  && req.query.freeAirFilter ) {
+            query = {
+              freeAirportShuttle: "Free airport shuttle",
+            };
+          };
+
+
+
+
+          if (req.query.brfFilter && req.query.frIntFilter  && !req.query.freeAirFilter) {
+            query = {
+              $or:[
+                {
+                 freeInternet: "Free internet",
+                },
+                {
+                 freeBreakFast: "Free breakfast",
+                },
+               ]
+            };
+          };
+
+          if (!req.query.brfFilter  && req.query.frIntFilter  && req.query.freeAirFilter) {
+            query = {
+              $or:[
+                {
+                 freeInternet: "Free internet",
+                },
+                {
+                  freeAirportShuttle: "Free airport shuttle",
+                },
+               ]
+            };
+          };
+
+          if (req.query.brfFilter  && !req.query.frIntFilter  && req.query.freeAirFilter) {
+            query = {
+              $or:[
+                {
+                  freeBreakFast: "Free breakfast",
+                },
+                {
+                  freeAirportShuttle: "Free airport shuttle",
+                },
+               ]
+            };
+          };
+
+          if (req.query.brfFilter  && req.query.frIntFilter  && req.query.freeAirFilter) {
+            query = {
+              $or:[
+                {
+                  freeBreakFast: "Free breakfast",
+                },
+                {
+                  freeAirportShuttle: "Free airport shuttle",
+                },
+                {
+                  freeInternet: "Free internet",
+                },
+               ]
+            };
+          };
+
+         
           
+
+          if(req.query.brfFilter  && req.query.frIntFilter  && req.query.freeAirFilter){
+            query = {
+              $or:[
+               {
+                freeInternet: "Free internet",
+               },
+               {
+                freeBreakFast: "Free breakfast",
+               },
+               {
+                freeAirportShuttle: "Free airport shuttle",
+               },
+              ]
+            };
           }
-          console.log(req.query.brfFilter, req.query.frIntFilter);
-          if (req.query.country) {
-             query = { country: req.query.country  };
-            // const result = await categoryCollection.find(query).toArray();
-            // res.send(result);
-        }
-        
-            // const query = {};
-            const result = await categoryCollection.find(query).toArray();
-            res.send(result);
+
+
+          // console.log(req.query.brfFilter, req.query.frIntFilter);
+          const packages = await categoryCollection.find(query).toArray();
+              res.send(packages);
        
         });
 
